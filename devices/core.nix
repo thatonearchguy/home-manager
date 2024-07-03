@@ -28,6 +28,9 @@ in
     # Bootloader.
     boot.loader.systemd-boot.enable = true;
     boot.loader.efi.canTouchEfiVariables = true;
+    boot.plymouth.enable = true;
+    boot.plymouth.theme = "catppuccin-macchiato";
+    boot.plymouth.themePackages = with pkgs; [ catppuccin-plymouth ];
 
     networking.hostName = "$targetDevice"; # Define your hostname.
     # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -76,6 +79,28 @@ in
         "vm.vfs_cache_pressure" = 50;
     };
 
+
+    services.pipewire.wireplumber.extraConfig = {
+        "monitor.bluez.properties" = {
+            "bluez5.enable-sbc-xq" = true;
+            "bluez5.enable-msbc" = true;
+            "bluez5.enable-hw-volume" = true;
+            "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+        };
+    };
+
+    hardware.pulseaudio.enable = false;
+    hardware.bluetooth = {
+        enable = true;
+        powerOnBoot = true;
+        settings = {
+        General = {
+            Enable = "Source,Sink,Media,Socket";
+            Experimental = true;
+        };
+        };
+    };
+
     # Enable the X11 windowing system.
     # You can disable this if you're only using the Wayland session.
     services.xserver.enable = true;
@@ -98,9 +123,9 @@ in
     };
 
     # Configure keymap in X11
-    services.xserver = {
+    services.xserver.xkb = {
         layout = "gb";
-        xkbVariant = "";
+        variant = "";
     };
 
     # Configure console keymap
@@ -161,7 +186,6 @@ in
         kdePackages.filelight
         heroic
         kicad
-        bluez
         brave
         picoscope
         libreoffice-qt6-still
@@ -172,7 +196,6 @@ in
         catppuccin-gtk
         catppuccin-kvantum
         catppuccin-cursors
-        catppuccin-plymouth
         catppuccin-papirus-folders
         vscode-extensions.catppuccin.catppuccin-vsc
         vscode-extensions.catppuccin.catppuccin-vsc-icons

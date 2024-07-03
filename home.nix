@@ -128,6 +128,7 @@ in
       accent = "Blue";
       variant = "Frappe";
     })
+    catppuccin-cursors.frappeBlue
   ];
 
   programs.bash = {
