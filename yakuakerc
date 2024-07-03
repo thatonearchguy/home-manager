@@ -1,0 +1,13 @@
+[Appearance]
+Skin=frappe
+
+[Desktop Entry]
+DefaultProfile=NixGenerated Profile.profile
+
+[Dialogs]
+FirstRun=false
+
+[Window]
+Height=58
+ShowSystrayIcon=false
+Width=100
