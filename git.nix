@@ -8,7 +8,7 @@
         extraConfig = {
             credential = {
                 credentialStore = "secretservice";
-                helper = "${pkgs.nur.repos.utybo.git-credential-manager}/bin/git-credential-manager-core";
+                helper = "${pkgs.nur.repos.utybo.git-credential-manager}/bin/git-credential-manager";
             };
         };
     };

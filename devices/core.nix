@@ -253,6 +253,7 @@ in
         distrobox
         profile-sync-daemon
         glib
+        tidal-hifi
 
     ];
 
