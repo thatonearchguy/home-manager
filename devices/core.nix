@@ -1,24 +1,24 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{ config, pkgs, ... }:
+{ config, pkgs, modulesPath, targetDevice, ... }:
 
 
 let
-    targetDevice = "Sojourner";
+    core_root = builtins.toString ./.;
+    targetDevice = "Hercules";
 in
 {
-    {
     imports =
-        [ # Include the results of the hardware scan.
+        [ # Include the specified device's configuration.
         
-            "./$targetDevice/configuration.nix"
+            (core_root + "/${targetDevice}/configuration.nix")
         ];
 
     nixpkgs.config.packageOverrides = pkgs: {
         nur = import (builtins.fetchTarball {
                 url = "https://github.com/nix-community/NUR/archive/master.tar.gz";
-                sha256 = "0dlddsa3vhfzgbzrdj4hdfdmcw91p6hamcb6fagx3xa1h66kf23g";
+                sha256 = "1hcrxbl2531dwv9bvy2i140a3dbfas8j8calyfps2lgkaxl71wab";
                 })
         {
         inherit pkgs;
@@ -26,13 +26,29 @@ in
     };
 
     # Bootloader.
-    boot.loader.systemd-boot.enable = true;
+    boot.loader.grub.enable = true;
+    boot.loader.grub.device = "nodev";
+    boot.loader.grub.useOSProber = true;
+    boot.loader.grub.efiSupport = true;
+
+    boot.loader.grub.theme = pkgs.stdenv.mkDerivation {
+        pname = "catppuccin-grub";
+        version = "3.1";
+        src = pkgs.fetchFromGitHub {
+            owner = "catppuccin";
+            repo = "grub";
+            rev = "88f6124757331fd3a37c8a69473021389b7663ad";
+            sha256 = "0rih0ra7jw48zpxrqwwrw1v0xay7h9727445wfbnrz6xwrcwbibv";
+        };
+        installPhase = "cp -r src/catppuccin-frappe-grub-theme $out";
+    };
+
     boot.loader.efi.canTouchEfiVariables = true;
     boot.plymouth.enable = true;
     boot.plymouth.theme = "catppuccin-macchiato";
     boot.plymouth.themePackages = with pkgs; [ catppuccin-plymouth ];
 
-    networking.hostName = "$targetDevice"; # Define your hostname.
+    networking.hostName = "${targetDevice}"; # Define your hostname.
     # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
     # Configure network proxy if necessary
@@ -112,15 +128,29 @@ in
     services.psd.enable = true;
 
     systemd.user.services.yakuake = {
-        enable = true;
-        description = "Open Yakuake at boot";
-        serviceConfig = {
-        ExecStart = "${pkgs.yakuake}/bin/yakuake";
-        wantedBy = [ "graphical-session.target" ];
-        Restart = "on-failure";
-        RestartSec = "5s";
-        };
+      enable = true;
+      description = "Open Yakuake at boot";
+      serviceConfig = {
+          ExecStart = "${pkgs.yakuake}/bin/yakuake";
+          Restart = "on-failure";
+          RestartSec = "5s";
+      };
+      wantedBy = [ "plasma-workspace.target" ];
     };
+
+
+    systemd.user.services.poweroptimise = {
+      enable = true;
+      description = "Apply power optimisations at boot";
+      serviceConfig = {
+          ExecStart = "${core_root}/devices/${targetDevice}/powertop-tune.sh";
+          Restart = "on-failure";
+          RestartSec = "5s";
+      };
+      wantedBy = [ "default.target" ];
+    };
+
+
 
     # Configure keymap in X11
     services.xserver.xkb = {
@@ -140,7 +170,6 @@ in
     '';
 
     # Enable sound with pipewire.
-    hardware.pulseaudio.enable = false;
     security.rtkit.enable = true;
     services.pipewire = {
         enable = true;
@@ -218,6 +247,9 @@ in
         curl
         roon-tui
         kdePackages.qtstyleplugin-kvantum
+        kdePackages.plasma-browser-integration
+        kdePackages.sddm-kcm
+        kmail
         distrobox
         profile-sync-daemon
         glib
@@ -261,5 +293,4 @@ in
     # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
     system.stateVersion = "24.05"; # Did you read the comment?
 
-    }
 }

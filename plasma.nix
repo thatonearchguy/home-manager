@@ -31,7 +31,7 @@
             clickItemTo = "select";
             lookAndFeel = "Catppuccin-Frappe-Blue";
             cursor = {
-                theme = "Catppuccin-Frappe-Blue";
+                theme = "catppuccin-frappe-blue-cursors";
                 size = 24;
             };
             iconTheme = "Tela-circle-dark";

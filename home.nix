@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, hostName, ... }:
 
 let
     lock-false = {
@@ -145,7 +145,7 @@ in
       urldecode = "python3 -c 'import sys, urllib.parse as ul; print(ul.unquote_plus(sys.stdin.read()))'";
       urlencode = "python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.stdin.read()))'";
       cat = "bat";
-
+      rebuild = "sudo nixos-rebuild switch --impure --flake /home/kavya/.config/home-manager/devices";
     };
   };
 
@@ -166,6 +166,7 @@ in
     ./firefox.nix
     ./plasma.nix
     ./git.nix
+    ./devices/${hostName}/home.nix
   ];
 
 }
