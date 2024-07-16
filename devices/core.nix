@@ -230,7 +230,8 @@ in
         vscode-extensions.catppuccin.catppuccin-vsc-icons
         tela-circle-icon-theme
         powertop
-        linuxKernel.packages.linux_latest_libre.cpupower
+        linuxKernel.packages.linux_zen.cpupower
+        linuxKernel.packages.linux_zen.ddcci-driver
         zsh
         zsh-completions
         zsh-powerlevel9k
@@ -249,6 +250,8 @@ in
         kdePackages.qtstyleplugin-kvantum
         kdePackages.plasma-browser-integration
         kdePackages.sddm-kcm
+        kde-rounded-corners
+        ddcutil
         kmail
         distrobox
         profile-sync-daemon
