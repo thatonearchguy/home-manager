@@ -44,14 +44,26 @@ in {
     enable = true;
     setSocketVariable = true;
   };
+
+  hardware.opengl = { # hardware.graphics on unstable
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver # LIBVA_DRIVER_NAME=iHD
+      libvdpau-va-gl
+      vaapiVdpau
+    ];
+  };
+
+  environment.sessionVariables = { LIBVA_DRIVER_NAME = "iHD"; };
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    intel-vaapi-driver
     inteltool
     jetbrains.pycharm-professional
     slack
+    libva-utils
     (pkgs.callPackage ./nordpass.nix {})
     nodejs_18
     nodePackages.npm

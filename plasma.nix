@@ -52,6 +52,7 @@
             height = 44;
             hiding = "dodgewindows";
             floating = true;
+            screen = "all";
             lengthMode = "fit";
             alignment = "center";
             widgets = [
@@ -79,6 +80,7 @@
             location = "top";
             height = 26;
             floating = true;
+            screen = "all";
             widgets = [
             "org.kde.plasma.kickoff"
             "org.kde.plasma.marginsseparator"
