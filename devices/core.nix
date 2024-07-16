@@ -6,7 +6,7 @@
 
 let
     core_root = builtins.toString ./.;
-    targetDevice = "Hercules";
+    targetDevice = "RussellHobbs";
 in
 {
     imports =
@@ -17,8 +17,8 @@ in
 
     nixpkgs.config.packageOverrides = pkgs: {
         nur = import (builtins.fetchTarball {
-                url = "https://github.com/nix-community/NUR/archive/master.tar.gz";
-                sha256 = "1hcrxbl2531dwv9bvy2i140a3dbfas8j8calyfps2lgkaxl71wab";
+                url = "https://github.com/nix-community/NUR/archive/64f752e6fbf6d89da13f417fa34225a8b081ce92.tar.gz";
+                sha256 = "1pzix0y7irqydi3f6q94dd0215a92kj160lqf7rsjf6yrq07dmp1";
                 })
         {
         inherit pkgs;
