@@ -30,7 +30,9 @@ in
   };
 
   home.file.".config/vesktop/settings/settings.json".source = ./settings.json;
+  home.sessionVariables.NIXOS_OZONE_WL = "1";
 
+  services.arrpc.enable = true;
 
 
   # link all files in `./scripts` to `~/.config/i3/scripts`
@@ -125,8 +127,8 @@ in
     pciutils # lspci
     usbutils # lsusb
     (catppuccin-kvantum.override {
-      accent = "Blue";
-      variant = "Frappe";
+      accent = "blue";
+      variant = "frappe";
     })
     catppuccin-cursors.frappeBlue
   ];
@@ -157,7 +159,7 @@ in
   # You can update home Manager without changing this value. See
   # the home Manager release notes for a list of state version
   # changes in each release.
-  home.stateVersion = "24.05";
+  home.stateVersion = "24.11";
 
   # Let home Manager install and manage itself.
   programs.home-manager.enable = true;

@@ -1,12 +1,14 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-{ config, pkgs, modulesPath, targetDevice, ... }:
+{ config, lib, pkgs, modulesPath, targetDevice, ... }:
 
 
 let
     core_root = builtins.toString ./.;
-    targetDevice = "RussellHobbs";
+
+    targetDevice = "Hercules";
+    appmenu-gtk3-module = (pkgs.callPackage ./appmenu.nix {});
 in
 {
     imports =
@@ -17,8 +19,8 @@ in
 
     nixpkgs.config.packageOverrides = pkgs: {
         nur = import (builtins.fetchTarball {
-                url = "https://github.com/nix-community/NUR/archive/64f752e6fbf6d89da13f417fa34225a8b081ce92.tar.gz";
-                sha256 = "1pzix0y7irqydi3f6q94dd0215a92kj160lqf7rsjf6yrq07dmp1";
+                url = "https://github.com/nix-community/NUR/archive/master.tar.gz";
+                sha256 = "0r7k0jr4mza343zcrn2wf177q0n0dmx1wdn1p1kr5qqh7qcj6brh";
                 })
         {
         inherit pkgs;
@@ -132,6 +134,7 @@ in
       description = "Open Yakuake at boot";
       serviceConfig = {
           ExecStart = "${pkgs.yakuake}/bin/yakuake";
+          ExecStartPre = "${pkgs.coreutils}/bin/sleep 10";
           Restart = "on-failure";
           RestartSec = "5s";
       };
@@ -143,7 +146,7 @@ in
       enable = true;
       description = "Apply power optimisations at boot";
       serviceConfig = {
-          ExecStart = "${core_root}/devices/${targetDevice}/powertop-tune.sh";
+          ExecStart = "${pkgs.bash}/bin/bash ${core_root}/${targetDevice}/powertop-tune.sh";
           Restart = "on-failure";
           RestartSec = "5s";
       };
@@ -163,6 +166,13 @@ in
 
     # Enable CUPS to print documents.
     services.printing.enable = true;
+
+    services.avahi = {
+        enable = true;
+        nssmdns4 = true;
+        openFirewall = true;
+    };
+
 
     security.sudo.extraConfig = ''
         Defaults        timestamp_timeout=30
@@ -191,33 +201,58 @@ in
     users.users.kavya = {
         isNormalUser = true;
         description = "KD";
-        extraGroups = [ "networkmanager" "wheel" ];
+        extraGroups = [ "networkmanager" "wheel" "docker" ];
         packages = with pkgs; [
         kdePackages.kate
         #  thunderbird
         ];
     };
 
+
     # Install firefox.
     programs.firefox.enable = true;
+    programs.steam.enable = true;
+    virtualisation.docker.rootless = {
+        enable = true;
+        setSocketVariable = true;
+    };
 
     # Allow unfree packages
     nixpkgs.config.allowUnfree = true;
     nixpkgs.config.segger-jlink.acceptLicense = true;
-    nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+    nix = {
+
+        # This will additionally add your inputs to the system's legacy channels
+        # Making legacy nix commands consistent as well, awesome!
+        nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
+
+        settings = {
+        # Enable flakes and new 'nix' command
+        experimental-features = "nix-command flakes";
+        # Deduplicate and optimize nix store
+        auto-optimise-store = true;
+        };
+    };
     # List packages installed in system profile. To search, run:
     # $ nix search wget
+
+    environment.sessionVariables = {
+        GSETTINGS_SCHEMA_DIR="${appmenu-gtk3-module}/share/gsettings-schemas/${appmenu-gtk3-module.name}/glib-2.0/schemas";
+    };
+
     environment.systemPackages = with pkgs; [
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
         kdePackages.yakuake
         vscode
         vesktop
         kdePackages.filelight
+        kdePackages.kglobalaccel
         heroic
         kicad
         brave
         picoscope
-        libreoffice-qt6-still
+        libreoffice-qt6-fresh
         nrf-command-line-tools
         nrfconnect
         catppuccin-kde
@@ -241,27 +276,38 @@ in
         qbittorrent
         rustup
         rustc
+        awscli2
+        nodePackages.aws-cdk
+        nodejs_22
+        anki-bin
         git
         libgcc
         gcc
         wget
         curl
         roon-tui
-        kdePackages.qtstyleplugin-kvantum
+        parsec-bin
         kdePackages.plasma-browser-integration
         kdePackages.sddm-kcm
-        kde-rounded-corners
         ddcutil
+        kdePackages.systemsettings
+        kdePackages.qtstyleplugin-kvantum
+        kdePackages.kirigami
+        kdePackages.kirigami-addons
         kmail
         distrobox
         profile-sync-daemon
         glib
         tidal-hifi
-
+        cifs-utils
+        appmenu-gtk3-module
+        gsettings-desktop-schemas
     ];
 
+
+
     nixpkgs.config.permittedInsecurePackages = [
-                    "segger-jlink-qt4-794l"
+                    "segger-jlink-qt4-796s"
     ];
 
     fonts.packages = with pkgs; [
@@ -270,6 +316,7 @@ in
         redhat-official-fonts
     ];
 
+    programs.dconf.enable = true;
     # Some programs need SUID wrappers, can be configured further or are
     # started in user sessions.
     # programs.mtr.enable = true;

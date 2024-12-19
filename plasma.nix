@@ -4,11 +4,11 @@
     qt = {
         enable = true;
         style.name = "kvantum";
-
+        platformTheme = "kde";
     };
 
     xdg.configFile."Kvantum/kvantum.kvconfig".source = (pkgs.formats.ini {}).generate "kvantum.kvconfig" {
-        General.theme = "Catppuccin-Frappe-Blue";
+        General.theme = "catppuccin-frappe-blue";
     };
     programs.konsole = {
         enable = true;
@@ -67,8 +67,6 @@
                         "applications:org.kicad.kicad.desktop"
                         "applications:vesktop.desktop"
                         "applications:com.heroicgameslauncher.hgl.desktop"
-                        "applications:systemsettings.desktop"
-
                     ];
                 };
             }

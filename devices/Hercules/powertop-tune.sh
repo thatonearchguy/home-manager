@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo '1500' > '/proc/sys/vm/dirty_writeback_centisecs'
 echo '1' > '/sys/module/snd_hda_intel/parameters/power_save'
 echo 'auto' > '/sys/bus/i2c/devices/i2c-6/device/power/control'
