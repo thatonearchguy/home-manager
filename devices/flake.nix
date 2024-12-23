@@ -18,7 +18,7 @@
   outputs = { self, nixpkgs, home-manager, plasma-manager, ... }@inputs: {
     # Please replace my-nixos with your hostname
     nixosConfigurations = {
-      RussellHobbs = nixpkgs.lib.nixosSystem {
+      Hercules = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
 
         modules = [

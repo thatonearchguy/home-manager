@@ -18,12 +18,8 @@ in
         ];
 
     nixpkgs.config.packageOverrides = pkgs: {
-        nur = import (builtins.fetchTarball {
-                url = "https://github.com/nix-community/NUR/archive/master.tar.gz";
-                sha256 = "0r7k0jr4mza343zcrn2wf177q0n0dmx1wdn1p1kr5qqh7qcj6brh";
-                })
-        {
-        inherit pkgs;
+        nur = import (builtins.fetchTarball "https://github.com/nix-community/NUR/archive/master.tar.gz") {
+            inherit pkgs;
         };
     };
 
@@ -239,6 +235,10 @@ in
 
     environment.sessionVariables = {
         GSETTINGS_SCHEMA_DIR="${appmenu-gtk3-module}/share/gsettings-schemas/${appmenu-gtk3-module.name}/glib-2.0/schemas";
+        __EGL_VENDOR_LIBRARY_FILENAMES="${pkgs.mesa.drivers}/share/glvnd/egl_vendor.d/50_mesa.json";
+        __GLX_VENDOR_LIBRARY_NAME="mesa";
+        GTK_MODULES="appmenu-gtk-module";
+
     };
 
     environment.systemPackages = with pkgs; [
@@ -261,6 +261,7 @@ in
         catppuccin-kvantum
         catppuccin-cursors
         catppuccin-papirus-folders
+        catppuccin-qt5ct
         vscode-extensions.catppuccin.catppuccin-vsc
         vscode-extensions.catppuccin.catppuccin-vsc-icons
         tela-circle-icon-theme

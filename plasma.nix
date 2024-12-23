@@ -4,7 +4,6 @@
     qt = {
         enable = true;
         style.name = "kvantum";
-        platformTheme = "kde";
     };
 
     xdg.configFile."Kvantum/kvantum.kvconfig".source = (pkgs.formats.ini {}).generate "kvantum.kvconfig" {
