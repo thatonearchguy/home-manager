@@ -4,7 +4,7 @@
     programs.git = {
         enable = true;
         userName = "Yuvraj D";
-        userEmail = "karandubey2911@gmail.com";
+        userEmail = "yuvraj.dubey@altus.ventures";
         extraConfig = {
             credential = {
                 credentialStore = "secretservice";

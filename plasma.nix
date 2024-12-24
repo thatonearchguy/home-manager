@@ -42,6 +42,26 @@
                 family = "Red Hat Text";
                 pointSize = 10;
             };
+            fixedWidth = {
+                family = "Fira Code";
+                pointSize = 10;
+            };
+            small = {
+                family = "Red Hat Text";
+                pointSize = 8;
+            };
+            toolbar = {
+                family = "Red Hat Text";
+                pointSize = 10;
+            };
+            menu = {
+                family = "Red Hat Text";
+                pointSize = 10;
+            };
+            windowTitle = {
+                family = "Red Hat Text";
+                pointSize = 10;
+            };
         };
         
         panels = [

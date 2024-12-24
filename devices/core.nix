@@ -7,7 +7,7 @@
 let
     core_root = builtins.toString ./.;
 
-    targetDevice = "Hercules";
+    targetDevice = "RussellHobbs";
     appmenu-gtk3-module = (pkgs.callPackage ./appmenu.nix {});
 in
 {
@@ -126,11 +126,13 @@ in
     services.psd.enable = true;
 
     systemd.user.services.yakuake = {
+      environment= lib.mkForce {
+        PATH="/run/wrappers/bin:/home/kavya/.nix-profile/bin:/nix/profile/bin:/home/kavya/.local/state/nix/profile/bin:/etc/profiles/per-user/kavya/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
+      };
       enable = true;
       description = "Open Yakuake at boot";
       serviceConfig = {
-          ExecStart = "${pkgs.yakuake}/bin/yakuake";
-          ExecStartPre = "${pkgs.coreutils}/bin/sleep 10";
+          ExecStart = "/run/current-system/sw/bin/yakuake";
           Restart = "on-failure";
           RestartSec = "5s";
       };
@@ -138,13 +140,14 @@ in
     };
 
 
-    systemd.user.services.poweroptimise = {
+    systemd.services.poweroptimise = {
       enable = true;
       description = "Apply power optimisations at boot";
       serviceConfig = {
+          RemainAfterExit=true;
+          Type="oneshot";
+          User="root";
           ExecStart = "${pkgs.bash}/bin/bash ${core_root}/${targetDevice}/powertop-tune.sh";
-          Restart = "on-failure";
-          RestartSec = "5s";
       };
       wantedBy = [ "default.target" ];
     };
@@ -239,6 +242,13 @@ in
         __GLX_VENDOR_LIBRARY_NAME="mesa";
         GTK_MODULES="appmenu-gtk-module";
 
+    };
+
+    programs.direnv = {
+        enable = true;
+        enableBashIntegration = true;
+        loadInNixShell = true;
+        nix-direnv.enable = true;
     };
 
     environment.systemPackages = with pkgs; [
