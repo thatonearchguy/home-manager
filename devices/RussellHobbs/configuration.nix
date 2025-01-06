@@ -18,6 +18,13 @@ in {
     ];
 
   nixpkgs.overlays = [ nix-snapshotter.overlays.default ];
+  #boot.kernelParams = [];
+  virtualisation.docker.enable = true;
+
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
+  };
   # (3) Enable service.
   virtualisation.containerd = {
     enable = true;
@@ -37,13 +44,7 @@ in {
     };
   };
 
-  #boot.kernelParams = [];
-  virtualisation.docker.enable = true;
 
-  virtualisation.docker.rootless = {
-    enable = true;
-    setSocketVariable = true;
-  };
 
   hardware.graphics = { # hardware.graphics on unstable
     enable = true;

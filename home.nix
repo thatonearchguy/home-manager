@@ -148,6 +148,8 @@ in
       urlencode = "python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.stdin.read()))'";
       cat = "bat";
       rebuild = "sudo nixos-rebuild switch --impure --flake /home/kavya/.config/home-manager/devices";
+      pacman-create = "sh /home/kavya/.config/home-manager/pacman-folder-create.sh";
+      pacman-destroy = "sh /home/kavya/.config/home-manager/pacman-folder-destroy.sh";
     };
   };
 

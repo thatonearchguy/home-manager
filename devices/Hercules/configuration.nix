@@ -93,6 +93,12 @@ in
       wantedBy = [ "graphical-session.target" ];
   };
 
+  services.usbmuxd = {
+    enable = true;
+    package = pkgs.usbmuxd2;
+  };
+
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -103,5 +109,7 @@ in
     lenovo-legion
     prismlauncher
     mangohud
+    libimobiledevice
+    ifuse
   ];
 }

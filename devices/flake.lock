@@ -1,5 +1,25 @@
 {
   "nodes": {
+    "archix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1733849744,
+        "narHash": "sha256-wJZW/8BqCl0vDxBPm6XKFC9Z4Lix3Nkb6q4lwCtw/4Q=",
+        "owner": "SamLukeYes",
+        "repo": "archix",
+        "rev": "957e73a37ab048dc121a12307132b823d649aa86",
+        "type": "github"
+      },
+      "original": {
+        "owner": "SamLukeYes",
+        "repo": "archix",
+        "type": "github"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -62,6 +82,7 @@
     },
     "root": {
       "inputs": {
+        "archix": "archix",
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "plasma-manager": "plasma-manager"

@@ -3,7 +3,8 @@
 {
     programs.firefox = {
         enable = true;
-        package = pkgs.firefox-bin;
+        package = (pkgs.callPackage ./firefox-globalmenu.nix {});
+        profileVersion = null;
         profiles.default = {
             id = 0;
             name = "Default";

@@ -6,8 +6,10 @@
 
 let
     core_root = builtins.toString ./.;
-
-    targetDevice = "RussellHobbs";
+    nix-snapshotter = import (
+        builtins.fetchTarball "https://github.com/pdtpartners/nix-snapshotter/archive/main.tar.gz"
+    );
+    targetDevice = "Hercules";
     appmenu-gtk3-module = (pkgs.callPackage ./appmenu.nix {});
 in
 {
@@ -15,12 +17,32 @@ in
         [ # Include the specified device's configuration.
         
             (core_root + "/${targetDevice}/configuration.nix")
+            nix-snapshotter.nixosModules.default
         ];
 
     nixpkgs.config.packageOverrides = pkgs: {
         nur = import (builtins.fetchTarball "https://github.com/nix-community/NUR/archive/master.tar.gz") {
             inherit pkgs;
         };
+    };
+
+    nixpkgs.overlays = [ nix-snapshotter.overlays.default ];
+    #boot.kernelParams = [];
+
+    # (3) Enable service.
+    virtualisation.containerd = {
+        enable = true;
+        nixSnapshotterIntegration = true;
+    };
+    services.nix-snapshotter = {
+        enable = true;
+    };
+
+    virtualisation.docker.enable = true;
+
+    virtualisation.docker.rootless = {
+        enable = true;
+        setSocketVariable = true;
     };
 
     # Bootloader.
@@ -209,12 +231,8 @@ in
 
 
     # Install firefox.
-    programs.firefox.enable = true;
     programs.steam.enable = true;
-    virtualisation.docker.rootless = {
-        enable = true;
-        setSocketVariable = true;
-    };
+
 
     # Allow unfree packages
     nixpkgs.config.allowUnfree = true;
@@ -255,6 +273,7 @@ in
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
         kdePackages.yakuake
         vscode
+        goldwarden
         vesktop
         kdePackages.filelight
         kdePackages.kglobalaccel

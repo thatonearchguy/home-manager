@@ -4,6 +4,10 @@
   inputs = {
     # NixOS official package source, using nixos-24.05 branch here
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    archix = {
+      url = "github:SamLukeYes/archix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,16 +19,17 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, plasma-manager, ... }@inputs: {
+  outputs = { self, nixpkgs, archix, home-manager, plasma-manager, ... }@inputs: {
     # Please replace my-nixos with your hostname
     nixosConfigurations = {
-      RussellHobbs = nixpkgs.lib.nixosSystem {
+      Hercules = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
 
         modules = [
           # Import the previous configuration.nix we used,
           # so the old configuration file still takes effect
           ./core.nix
+          archix.nixosModules.default
           home-manager.nixosModules.home-manager ({ config, ...}: {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;
