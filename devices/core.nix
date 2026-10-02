@@ -9,8 +9,8 @@ let
     nix-snapshotter = import (
         builtins.fetchTarball "https://github.com/pdtpartners/nix-snapshotter/archive/main.tar.gz"
     );
-    targetDevice = "Hercules";
     appmenu-gtk3-module = (pkgs.callPackage ./appmenu.nix {});
+    opera-gx = (pkgs.callPackage ./opera_gx.nix {});
 in
 {
     imports =
@@ -36,13 +36,6 @@ in
     };
     services.nix-snapshotter = {
         enable = true;
-    };
-
-    virtualisation.docker.enable = true;
-
-    virtualisation.docker.rootless = {
-        enable = true;
-        setSocketVariable = true;
     };
 
     # Bootloader.
@@ -77,6 +70,16 @@ in
 
     # Enable networking
     networking.networkmanager.enable = true;
+    networking.networkmanager.wifi.backend = "iwd";
+    networking.networkmanager.dns = "systemd-resolved";
+    services.resolved.enable = true;
+
+    networking.wireless.iwd.settings = {
+        Scan = {
+            DisablePeriodicScan = true;
+            DisableRoamingScan = true;
+        };
+    };
 
     # Set your time zone.
     time.timeZone = "Europe/London";
@@ -115,17 +118,219 @@ in
         "vm.vfs_cache_pressure" = 50;
     };
 
+    services.udev.extraRules = ''
+        SUBSYSTEM!="usb|usb_device", GOTO="xmos_rules_end"
+        ACTION!="add", GOTO="xmos_rules_end"
 
-    services.pipewire.wireplumber.extraConfig = {
-        "monitor.bluez.properties" = {
-            "bluez5.enable-sbc-xq" = true;
-            "bluez5.enable-msbc" = true;
-            "bluez5.enable-hw-volume" = true;
-            "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+        # 20b1:f7d4 - XMOS XTAG-3
+        ATTRS{idVendor}=="20b1", ATTRS{idProduct}=="f7d4", MODE="0666", SYMLINK="xtag3-%n"
+
+        # 20b1:f7d5 - XMOS XTAG-4
+        ATTRS{idVendor}=="20b1", ATTRS{idProduct}=="f7d5", MODE="0666", SYMLINK="xtag4-%n"
+
+        LABEL="xmos_rules_end"
+
+        SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="5512", MODE="0666"
+
+        # CP210X USB UART
+        ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea[67][013]", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+        ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="80a9", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # FT231XS USB UART
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Prolific Technology, Inc. PL2303 Serial Port
+        ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # QinHeng Electronics HL-340 USB-Serial adapter
+        ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+        # QinHeng Electronics CH343 USB-Serial adapter
+        ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d3", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+        # QinHeng Electronics CH9102 USB-Serial adapter
+        ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="55d4", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Arduino boards
+        ATTRS{idVendor}=="2341", ATTRS{idProduct}=="[08][023]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+        ATTRS{idVendor}=="2a03", ATTRS{idProduct}=="[08][02]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Arduino SAM-BA
+        ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="6124", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{MTP_NO_PROBE}="1"
+
+        # Digistump boards
+        ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="0753", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Maple with DFU
+        ATTRS{idVendor}=="1eaf", ATTRS{idProduct}=="000[34]", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # USBtiny
+        ATTRS{idProduct}=="0c9f", ATTRS{idVendor}=="1781", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # USBasp V2.0
+        ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="05dc", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Teensy boards
+        ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789B]?", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+        ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789A]?", ENV{MTP_NO_PROBE}="1"
+        SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789ABCD]?", MODE:="0666"
+        KERNEL=="ttyACM*", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789B]?", MODE:="0666"
+
+        # TI Stellaris Launchpad
+        ATTRS{idVendor}=="1cbe", ATTRS{idProduct}=="00fd", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # TI MSP430 Launchpad
+        ATTRS{idVendor}=="0451", ATTRS{idProduct}=="f432", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # GD32V DFU Bootloader
+        ATTRS{idVendor}=="28e9", ATTRS{idProduct}=="0189", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # FireBeetle-ESP32
+        ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7522", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Wio Terminal
+        ATTRS{idVendor}=="2886", ATTRS{idProduct}=="[08]02d", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Raspberry Pi Pico
+        ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="[01]*", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # AIR32F103
+        ATTRS{idVendor}=="0d28", ATTRS{idProduct}=="0204", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # STM32 virtual COM port
+        ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        #
+        # Debuggers
+        #
+
+        # Black Magic Probe
+        SUBSYSTEM=="tty", ATTRS{interface}=="Black Magic GDB Server", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+        SUBSYSTEM=="tty", ATTRS{interface}=="Black Magic UART Port", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # opendous and estick
+        ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204f", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Original FT232/FT245/FT2232/FT232H/FT4232
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="60[01][104]", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # DISTORTEC JTAG-lock-pick Tiny 2
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="8220", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # TUMPA, TUMPA Lite
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="8a9[89]", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # XDS100v2
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="a6d0", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Xverve Signalyzer Tool (DT-USB-ST), Signalyzer LITE (DT-USB-SLITE)
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="bca[01]", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # TI/Luminary Stellaris Evaluation Board FTDI (several)
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="bcd[9a]", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # egnite Turtelizer 2
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="bdc8", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Section5 ICEbear
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="c14[01]", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Amontec JTAGkey and JTAGkey-tiny
+        ATTRS{idVendor}=="0403", ATTRS{idProduct}=="cff8", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # TI ICDI
+        ATTRS{idVendor}=="0451", ATTRS{idProduct}=="c32a", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # STLink probes
+        ATTRS{idVendor}=="0483", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Hilscher NXHX Boards
+        ATTRS{idVendor}=="0640", ATTRS{idProduct}=="0028", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Hitex probes
+        ATTRS{idVendor}=="0640", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Altera USB Blaster
+        ATTRS{idVendor}=="09fb", ATTRS{idProduct}=="6001", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Amontec JTAGkey-HiSpeed
+        ATTRS{idVendor}=="0fbb", ATTRS{idProduct}=="1000", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # SEGGER J-Link
+        ATTRS{idVendor}=="1366", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Raisonance RLink
+        ATTRS{idVendor}=="138e", ATTRS{idProduct}=="9000", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Debug Board for Neo1973
+        ATTRS{idVendor}=="1457", ATTRS{idProduct}=="5118", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Olimex probes
+        ATTRS{idVendor}=="15ba", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # USBprog with OpenOCD firmware
+        ATTRS{idVendor}=="1781", ATTRS{idProduct}=="0c63", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # TI/Luminary Stellaris In-Circuit Debug Interface (ICDI) Board
+        ATTRS{idVendor}=="1cbe", ATTRS{idProduct}=="00fd", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Marvell Sheevaplug
+        ATTRS{idVendor}=="9e88", ATTRS{idProduct}=="9e8f", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Keil Software, Inc. ULink
+        ATTRS{idVendor}=="c251", ATTRS{idProduct}=="2710", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # CMSIS-DAP compatible adapters
+        ATTRS{product}=="*CMSIS-DAP*", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Atmel AVR Dragon
+        ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2107", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Espressif USB JTAG/serial debug unit
+        ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+        # Zephyr framework USB CDC-ACM
+        ATTRS{idVendor}=="2fe3", ATTRS{idProduct}=="0100", MODE="0666", ENV{ID_MM_DEVICE_IGNORE}="1", ENV{ID_MM_PORT_IGNORE}="1"
+
+    '';
+
+
+    services.pipewire = {
+        enable = true;
+        alsa.enable = true;
+        alsa.support32Bit = true;
+        pulse.enable = true;
+        # If you want to use JACK applications, uncomment this
+        #jack.enable = true;
+
+        raopOpenFirewall = true;
+        # opens UDP ports 6001-6002
+        extraConfig.pipewire = {
+            "10-airplay" = {
+            "context.modules" = [
+                {
+                name = "libpipewire-module-raop-discover";
+
+                # increase the buffer size if you get dropouts/glitches
+                args = {
+                   "raop.latency.ms" = 100;
+                };
+
+                }
+            ];
+            };
         };
+
+        wireplumber.extraConfig = {
+            "monitor.bluez.properties" = {
+                "bluez5.enable-sbc-xq" = true;
+                "bluez5.enable-msbc" = true;
+                "bluez5.enable-hw-volume" = true;
+                "bluez5.roles" = [ "hsp_hs" "hsp_ag" "hfp_hf" "hfp_ag" ];
+            };
+        };
+
     };
 
-    hardware.pulseaudio.enable = false;
+    services.pulseaudio.enable = false;
     hardware.bluetooth = {
         enable = true;
         powerOnBoot = true;
@@ -136,6 +341,8 @@ in
         };
         };
     };
+
+    hardware.i2c.enable = true;
 
     # Enable the X11 windowing system.
     # You can disable this if you're only using the Wayland session.
@@ -150,6 +357,9 @@ in
     systemd.user.services.yakuake = {
       environment= lib.mkForce {
         PATH="/run/wrappers/bin:/home/kavya/.nix-profile/bin:/nix/profile/bin:/home/kavya/.local/state/nix/profile/bin:/etc/profiles/per-user/kavya/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin";
+        WAYLAND_DISPLAY="wayland-0";
+        DISPLAY=":1";
+        XAUTHORITY="/run/user/1000/xauth_nYrLEM";
       };
       enable = true;
       description = "Open Yakuake at boot";
@@ -202,18 +412,7 @@ in
 
     # Enable sound with pipewire.
     security.rtkit.enable = true;
-    services.pipewire = {
-        enable = true;
-        alsa.enable = true;
-        alsa.support32Bit = true;
-        pulse.enable = true;
-        # If you want to use JACK applications, uncomment this
-        #jack.enable = true;
 
-        # use the example session manager (no others are packaged yet so this is enabled by default,
-        # no need to redefine it in your config for now)
-        #media-session.enable = true;
-    };
 
     # Enable touchpad support (enabled default in most desktopManager).
     # services.xserver.libinput.enable = true;
@@ -222,7 +421,7 @@ in
     users.users.kavya = {
         isNormalUser = true;
         description = "KD";
-        extraGroups = [ "networkmanager" "wheel" "docker" ];
+        extraGroups = [ "networkmanager" "wheel" "docker" "i2c" ];
         packages = with pkgs; [
         kdePackages.kate
         #  thunderbird
@@ -232,10 +431,22 @@ in
 
     # Install firefox.
     programs.steam.enable = true;
+    programs.kdeconnect.enable = true;
+    programs.partition-manager.enable = true;
+    virtualisation.docker.enable = true;
 
+    virtualisation.docker.rootless = {
+        enable = true;
+        setSocketVariable = true;
+    };
 
     # Allow unfree packages
     nixpkgs.config.allowUnfree = true;
+#     programs.nix-ld.enable = true;
+#     programs.nix-ld.libraries = with pkgs; [
+#         cmake
+#         libtinfo
+#     ];
     nixpkgs.config.segger-jlink.acceptLicense = true;
 
     nix = {
@@ -256,10 +467,10 @@ in
 
     environment.sessionVariables = {
         GSETTINGS_SCHEMA_DIR="${appmenu-gtk3-module}/share/gsettings-schemas/${appmenu-gtk3-module.name}/glib-2.0/schemas";
-        __EGL_VENDOR_LIBRARY_FILENAMES="${pkgs.mesa.drivers}/share/glvnd/egl_vendor.d/50_mesa.json";
+        __EGL_VENDOR_LIBRARY_FILENAMES="${pkgs.mesa}/share/glvnd/egl_vendor.d/50_mesa.json";
         __GLX_VENDOR_LIBRARY_NAME="mesa";
         GTK_MODULES="appmenu-gtk-module";
-
+        SSH_AUTH_SOCK="/home/kavya/.bitwarden-ssh-agent.sock";
     };
 
     programs.direnv = {
@@ -273,17 +484,25 @@ in
     #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
         kdePackages.yakuake
         vscode
-        goldwarden
         vesktop
+        davinci-resolve
+        bitwarden-desktop
+        bitwarden-cli
         kdePackages.filelight
         kdePackages.kglobalaccel
         heroic
         kicad
+        jetbrains.pycharm
+        nixd
+        vscode-json-languageserver
         brave
         picoscope
+        helix
+        easyeffects
         libreoffice-qt6-fresh
         nrf-command-line-tools
         nrfconnect
+        platformio
         catppuccin-kde
         catppuccin-sddm
         catppuccin-gtk
@@ -296,18 +515,19 @@ in
         tela-circle-icon-theme
         powertop
         linuxKernel.packages.linux_zen.cpupower
-        linuxKernel.packages.linux_zen.ddcci-driver
+        ddcutil
         zsh
         zsh-completions
         zsh-powerlevel9k
         zsh-autocomplete
         htop
+        pay-respects
         vlc
         qbittorrent
         rustup
         rustc
         awscli2
-        nodePackages.aws-cdk
+        aws-cdk-cli
         nodejs_22
         anki-bin
         git
@@ -318,35 +538,58 @@ in
         roon-tui
         parsec-bin
         kdePackages.plasma-browser-integration
+        kdePackages.kio-fuse
+        protonvpn-gui
         kdePackages.sddm-kcm
         ddcutil
         kdePackages.systemsettings
         kdePackages.qtstyleplugin-kvantum
         kdePackages.kirigami
         kdePackages.kirigami-addons
-        kmail
+        kdePackages.kontact
+        kdePackages.kmail-account-wizard
+        kdePackages.kontactinterface
         distrobox
         profile-sync-daemon
         glib
-        tidal-hifi
         cifs-utils
+        wgnord
         appmenu-gtk3-module
+        opera-gx
         gsettings-desktop-schemas
+        code-cursor
+        telegram-desktop
+        appimage-run
     ];
 
 
 
     nixpkgs.config.permittedInsecurePackages = [
-                    "segger-jlink-qt4-796s"
+                    "segger-jlink-qt4-874"
     ];
 
     fonts.packages = with pkgs; [
         fira-code-symbols
         fira-code
+        noto-fonts-lgc-plus
         redhat-official-fonts
+        inter
+        meslo-lgs-nf
     ];
 
+    fonts.fontconfig = {
+        defaultFonts = {
+            serif = [ "Noto Serif" ];
+            sansSerif = [ "Red Hat Text" ];
+            monospace = [ "Fira Code" ];
+        };
+        useEmbeddedBitmaps = true;
+    };
+
     programs.dconf.enable = true;
+
+
+
     # Some programs need SUID wrappers, can be configured further or are
     # started in user sessions.
     # programs.mtr.enable = true;
@@ -356,7 +599,8 @@ in
     # };
 
     # List services that you want to enable:
-
+    programs.ssh.setXAuthLocation = true;
+    programs.ssh.forwardX11 = true;
     # Enable the OpenSSH daemon.
     # services.openssh.enable = true;
 

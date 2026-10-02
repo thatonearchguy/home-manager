@@ -3,9 +3,11 @@
 {
     programs.git = {
         enable = true;
-        userName = "Yuvraj D";
-        userEmail = "yuvraj.dubey@altus.ventures";
-        extraConfig = {
+        settings = {
+            user = {
+                name = "Yuvraj D";
+                email = "karandubey2911@gmail.com";
+            };
             credential = {
                 credentialStore = "secretservice";
                 helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";

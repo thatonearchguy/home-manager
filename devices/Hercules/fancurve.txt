@@ -6,7 +6,7 @@ entries:
   cpu_upper_temp: 56
   gpu_lower_temp: 0
   gpu_upper_temp: 65
-  ic_lower_temp: 0
+  ic_lower_temp: 127
   ic_upper_temp: 127
   acceleration: 2
   deceleration: 2

@@ -6,7 +6,7 @@
 
 let
     config_root = builtins.toString ./.;
-
+    unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
 in
 {
   imports =
@@ -24,18 +24,26 @@ in
     };
   };
 
+  virtualisation.docker.enable = true;
+
+    virtualisation.docker.rootless = {
+        enable = true;
+        setSocketVariable = true;
+    };
+
 
   #AMD iGPU
   boot.initrd.kernelModules= ["amdgpu"];
 
-  boot.extraModulePackages = with pkgs; [ config.boot.kernelPackages.lenovo-legion-module
+  boot.extraModulePackages = with pkgs; [ (config.boot.kernelPackages.callPackage
+    "${unstable.path}/pkgs/os-specific/linux/lenovo-legion/default.nix" { })
                                config.boot.kernelPackages.nvidia_x11
                              ];
-  boot.kernelModules = ["nvidia" "legion-laptop" "i2c-dev" "ddcci_backlight"];
+  boot.kernelModules = ["nvidia" "legion-laptop" "i2c-dev"];
 
   hardware.graphics = {
     enable = true;
-    extraPackages=with pkgs;[vaapiVdpau libvdpau-va-gl];
+    extraPackages=with pkgs;[libva-vdpau-driver libvdpau-va-gl];
   };
 
   #NVIDIA GPU
@@ -56,7 +64,14 @@ in
     # Enable the Nvidia settings menu,
 	# accessible via `nvidia-settings`.
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+        version = "615.71.09";
+        sha256_64bit = "sha256-zc7tIrvrYSSNGm3qvCWWZz46ZQFpjucayNL9wo87cP4=";
+        sha256_aarch64 = "sha256-IbekQhE7cFfmnPZaLY9NDYcF7CoNZ+2Qb7sRd4EOgWM=";
+        openSha256 = "sha256-3gByMYIwFzRaLdDG+roCEOuKRRJDrljG9AlLnRZTirM=";
+        settingsSha256 = "sha256-LK1LU8mDkM/XVRKPBtuOZh9nIP/lGFLAJnmasEX8jhg=";
+        persistencedSha256 = "sha256-qPRb+3d88+2RcpUkoBTbjIaImnQ+jX+/6p1vXcJ5geE=";
+    };
     prime = {
         amdgpuBusId = "PCI:6:0:0";
         nvidiaBusId = "PCI:1:0:0";
@@ -88,7 +103,7 @@ in
       serviceConfig = {
           RemainAfterExit=true;
           Type="oneshot";
-          ExecStart = "/etc/profiles/per-user/kavya/bin/bash ${pkgs.lenovo-legion}/bin/legion_cli fancurve-write-file-to-hw ${config_root}/fancurve.txt";
+          ExecStart = "${unstable.lenovo-legion}/bin/legion_cli fancurve-write-file-to-hw ${config_root}/fancurve.txt";
       };
       wantedBy = [ "graphical-session.target" ];
   };
@@ -106,10 +121,10 @@ in
     libva-utils
     libva
     amdgpu_top
-    lenovo-legion
     prismlauncher
     mangohud
     libimobiledevice
     ifuse
+    unstable.lenovo-legion
   ];
 }

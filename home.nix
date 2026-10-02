@@ -29,7 +29,8 @@ in
     recursive = true;
   };
 
-  home.file.".config/vesktop/settings/settings.json".source = ./settings.json;
+  home.file.".config/kate/lspclient/settings.json".source = ./kate-settings.json;
+
   home.sessionVariables.NIXOS_OZONE_WL = "1";
 
   services.arrpc.enable = true;
@@ -58,7 +59,7 @@ in
     # here is some command line tools I use frequently
     # feel free to add your own or remove some of them
 
-    neofetch
+    fastfetch
     nnn # terminal file manager
     python3
 
@@ -75,7 +76,6 @@ in
     eza # A modern replacement for ‘ls’
     fzf # A command-line fuzzy finder
     helix
-    libstdcxx5
     nix-index
     libdbusmenu-gtk3
 
@@ -133,6 +133,94 @@ in
     catppuccin-cursors.frappeBlue
   ];
 
+  programs.pay-respects.enableZshIntegration = true;
+
+  programs.nixcord = {
+    enable = true;
+    discord.equicord.enable = true;
+    config.themeLinks = [ "https://raw.githubusercontent.com/catppuccin/discord/refs/heads/main/themes/frappe.theme.css" ];
+    config.enabledThemeLinks = [ "https://raw.githubusercontent.com/catppuccin/discord/refs/heads/main/themes/frappe.theme.css" ];
+    config.plugins = {
+      hideMedia.enable = true;
+      altKrispSwitch.enable = true;
+      betterActivities.enable = true;
+      betterAudioPlayer.enable = true;
+      streamingCodecDisabler.enable = true;
+      translatePlus.enable = true;
+      alwaysTrust.enable = true;
+      anonymiseFileNames.enable = true;
+      betterFolders.enable = true;
+      blurNsfw.enable = true;
+      clearUrls.enable = true;
+      colorSighted.enable = true;
+      crashHandler.enable = true;
+      fakeNitro.enable = true;
+      fixYoutubeEmbeds.enable = true;
+      noDevtoolsWarning.enable = true;
+      noTrack.enable = true;
+      noTypingAnimation.enable = true;
+      settings.enable = true;
+      supportHelper.enable = true;
+      typingIndicator.enable = true;
+      webContextMenus = {
+        enable = true;
+        addBack = true;
+      };
+      webKeybinds.enable = true;
+      webScreenShareFixes.enable = true;
+    };
+  };
+
+  programs.zsh = {
+    enable = true;
+    enableCompletion = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+
+    initContent = ''
+      [[ ! -f /home/kavya/.config/home-manager/p10k-config/p10k.zsh ]] || source /home/kavya/.config/home-manager/p10k-config/p10k.zsh
+
+    '';
+
+    zplug = {
+      enable = true;
+      plugins = [
+        { name = "zsh-users/zsh-autosuggestions"; } # Simple plugin installation
+        { name = "romkatv/powerlevel10k"; tags = [ as:theme depth:1 ]; }
+        { name = "plugins/git"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/battery"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/redis-cli"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/rsync"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/npm"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/python"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/github"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/emoji"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/dotenv"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/docker-compose"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/docker"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/aws"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/aliases"; tags = [from:oh-my-zsh]; }
+        { name = "plugins/alias-finder"; tags = [from:oh-my-zsh]; }
+        { name = "./p10k-config/p10k.zsh"; tags = [from:local]; }
+      ];
+    };
+
+
+    shellAliases = {
+      k = "kubectl";
+      urldecode = "python3 -c 'import sys, urllib.parse as ul; print(ul.unquote_plus(sys.stdin.read()))'";
+      urlencode = "python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.stdin.read()))'";
+      cat = "bat";
+      rebuild = "sudo nixos-rebuild switch --impure --flake /home/kavya/.config/home-manager/devices#${hostName}";
+      pacman-create = "sh /home/kavya/.config/home-manager/pacman-folder-create.sh";
+      pacman-destroy = "sh /home/kavya/.config/home-manager/pacman-folder-destroy.sh";
+    };
+
+    history.size = 10000;
+  };
+
+
+
   programs.bash = {
     enable = true;
     enableCompletion = true;
@@ -146,8 +234,8 @@ in
       k = "kubectl";
       urldecode = "python3 -c 'import sys, urllib.parse as ul; print(ul.unquote_plus(sys.stdin.read()))'";
       urlencode = "python3 -c 'import sys, urllib.parse as ul; print(ul.quote_plus(sys.stdin.read()))'";
-      cat = "bat";
-      rebuild = "sudo nixos-rebuild switch --impure --flake /home/kavya/.config/home-manager/devices";
+      cat = "${pkgs.bat}/bin/bat";
+      rebuild = "sudo nixos-rebuild switch --impure --flake /home/kavya/.config/home-manager/devices#${hostName}";
       pacman-create = "sh /home/kavya/.config/home-manager/pacman-folder-create.sh";
       pacman-destroy = "sh /home/kavya/.config/home-manager/pacman-folder-destroy.sh";
     };

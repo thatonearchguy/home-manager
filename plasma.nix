@@ -16,9 +16,9 @@
             custom = {
                 name = "NixGenerated Profile";
                 colorScheme = "Catppuccin-Frappe";
-                command = "bash";
+                command = "zsh";
                 font = {
-                name = "Fira Code";
+                name = "MesloLGS NF";
                 size = 10;
                 };
             };
@@ -84,7 +84,7 @@
                         "applications:firefox.desktop"
                         "applications:code.desktop"
                         "applications:org.kicad.kicad.desktop"
-                        "applications:vesktop.desktop"
+                        "applications:discord.desktop"
                         "applications:com.heroicgameslauncher.hgl.desktop"
                     ];
                 };

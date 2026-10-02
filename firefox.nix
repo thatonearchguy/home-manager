@@ -3,7 +3,8 @@
 {
     programs.firefox = {
         enable = true;
-        package = (pkgs.callPackage ./firefox-globalmenu.nix {});
+        package = (pkgs.firefox-esr);
+        configPath = ".mozilla/firefox";
         profileVersion = null;
         profiles.default = {
             id = 0;
@@ -35,7 +36,7 @@
                 "dom.security.https_only_mode" = true;
                 "dom.security.https_only_mode_ever_enabled" = true;
             };
-            extensions = with pkgs.nur.repos.rycee.firefox-addons; [
+            extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
                 darkreader
                 privacy-badger
                 ublock-origin
